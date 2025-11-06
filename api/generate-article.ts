@@ -34,8 +34,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 		const imageUrl = `https://placehold.co/800x480?text=${encodeURIComponent(title)}`;
 		res.status(200).json({ title, body, imageUrl, imagePrompt });
 	} catch (e: any) {
-		console.error('[generate-article] error', e?.message || e);
-		res.status(500).json({ error: e?.message || 'Generation failed' });
+		console.error('[generate-article] error', e?.message || e, e?.stack);
+		const errorMessage = e?.message || 'Generation failed';
+		const hasKey = Boolean(process.env.GOOGLE_API_KEY);
+		res.status(500).json({ 
+			error: errorMessage,
+			details: {
+				hasApiKey: hasKey,
+				keyPrefix: hasKey ? process.env.GOOGLE_API_KEY?.slice(0, 6) : 'missing'
+			}
+		});
 	}
 }
 
