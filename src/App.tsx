@@ -13,8 +13,8 @@ function Home() {
         return (
             <div className="container mx-auto max-w-2xl p-4 flex items-center justify-center min-h-screen">
                 <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-t-8 border-amber-300 w-full max-w-md text-center">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-3">😊 AI 글쓰기 교실</h1>
-                    <p className="text-gray-600 mb-8">AI가 만들어주는 새로운 이야기로 글쓰기를 시작해봐요!</p>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-3">질문을 활용해 읽기과정 되돌아보기</h1>
+                    <p className="text-gray-600 mb-8">AI가 만들어주는 글을 읽으며 질문을 만들고, 친구들과 함께 생각을 나눠요!</p>
                     <div className="space-y-6">
                         <div>
                             <label htmlFor="nickname-input" className="block text-left text-sm font-semibold text-gray-600 mb-1">닉네임</label>
