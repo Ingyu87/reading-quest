@@ -10,19 +10,32 @@ function Home() {
     return (
         <div style={{ padding: 24 }}>
             <h1>질문하는 독서 (Reading Quest)</h1>
-            <p>AI 기반 읽기 과정 점검 웹앱</p>
-            <div style={{ display: 'flex', gap: 12, marginTop: 16, alignItems: 'center' }}>
+            <p>AI가 만들어 주는 글로 읽기 연습을 하고, 내가 만든 질문을 남겨요.</p>
+            <div style={{ display: 'flex', gap: 12, marginTop: 16, alignItems: 'center', flexWrap: 'wrap' }}>
                 <label>
-                    닉네임: <input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="닉네임" />
+                    내 이름(닉네임): <input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="예) 별토끼" />
                 </label>
                 <label>
-                    기사 ID: <input value={articleId} onChange={e => setArticleId(e.target.value)} placeholder="article-id" />
+                    활동 코드: <input value={articleId} onChange={e => setArticleId(e.target.value)} placeholder="선생님이 알려준 코드" />
                 </label>
+                <button onClick={() => setArticleId(Math.random().toString(36).slice(2, 8))}>코드 만들기</button>
                 <span style={{ fontSize: 12, color: '#666' }}>{authReady ? 'Auth ready' : '...'}</span>
+                <div style={{ width: '100%', fontSize: 12, color: '#666' }}>
+                    같은 활동에 참여하려면 모두 같은 코드를 써요. 새 글을 만들면 코드가 자동으로 생겨요.
+                </div>
             </div>
             <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
                 <Link to="/start">AI 글 읽기 시작</Link>
                 <Link to="/gallery">질문 갤러리 보기</Link>
+            </div>
+            <div style={{ marginTop: 24 }}>
+                <h3>사용 방법</h3>
+                <ol>
+                    <li>1) 위에 내 이름을 쓰고, 활동 코드를 입력해요. (모를 땐 코드 만들기)</li>
+                    <li>2) AI 글 읽기 시작을 눌러 글과 삽화를 만들어요.</li>
+                    <li>3) 읽기 전→중→후 단계에서 떠오르는 질문을 적고 저장해요.</li>
+                    <li>4) 질문 갤러리에서 친구들의 질문을 보고 답변도 남겨요.</li>
+                </ol>
             </div>
         </div>
     );
