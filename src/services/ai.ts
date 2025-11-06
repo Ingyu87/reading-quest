@@ -17,7 +17,12 @@ export async function generateArticle(params: GenerateParams): Promise<Generated
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(params),
 	});
-	if (!res.ok) throw new Error('Failed to generate');
+	if (!res.ok) {
+		const errorData = await res.json().catch(() => ({}));
+		const errorMsg = errorData?.error || `HTTP ${res.status}: ${res.statusText}`;
+		const details = errorData?.details ? `\n상세: ${JSON.stringify(errorData.details)}` : '';
+		throw new Error(`${errorMsg}${details}`);
+	}
 	return (await res.json()) as GeneratedArticle;
 }
 

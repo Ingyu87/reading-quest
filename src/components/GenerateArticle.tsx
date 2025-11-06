@@ -24,7 +24,9 @@ export default function GenerateArticle() {
 			const g = await generateArticle({ kind, difficulty, topic });
 			setPreview({ title: g.title, body: g.body, imageUrl: `https://placehold.co/800x480?text=${encodeURIComponent(g.title)}` });
 		} catch (e: any) {
-			alert('글 생성에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
+			const errorMsg = e?.message || '알 수 없는 오류';
+			console.error('Generate error:', e);
+			alert(`글 생성에 실패했습니다:\n${errorMsg}\n\nVercel Runtime Logs를 확인해주세요.`);
 		} finally {
 			setLoading(false);
 		}
