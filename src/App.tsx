@@ -11,10 +11,10 @@ function Home() {
     
     if (showLogin) {
         return (
-            <div className="container mx-auto max-w-4xl p-6 flex items-center justify-center min-h-screen">
-                <div className="bg-white p-8 md:p-12 rounded-2xl shadow-lg border-t-8 border-amber-300 w-full max-w-3xl text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 leading-tight">질문을 활용해 읽기과정 되돌아보기</h1>
-                    <p className="text-lg md:text-xl text-gray-600 mb-10 leading-relaxed">AI가 만들어주는 글을 읽으며 질문을 만들고, 친구들과 함께 생각을 나눠요!</p>
+            <div className="container mx-auto max-w-6xl p-6 flex items-center justify-center min-h-screen">
+                <div className="bg-white p-8 md:p-12 rounded-2xl shadow-lg border-t-8 border-amber-300 w-full max-w-5xl text-center">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 leading-tight whitespace-nowrap">질문을 활용해 읽기과정 되돌아보기</h1>
+                    <p className="text-base md:text-lg lg:text-xl text-gray-600 mb-10 leading-relaxed whitespace-nowrap">AI가 만들어주는 글을 읽으며 질문을 만들고, 친구들과 함께 생각을 나눠요!</p>
                     <div className="space-y-8 max-w-2xl mx-auto">
                         <div>
                             <label htmlFor="nickname-input" className="block text-left text-base font-semibold text-gray-700 mb-2">닉네임</label>
