@@ -1,52 +1,31 @@
-:root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.6;
-  font-weight: 400;
-  color: #1f2937; /* slate-800 */
-  background-color: #f8fafc; /* slate-50 */
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', 'Pretendard', system-ui, sans-serif;
+  background-color: #f8f9fa;
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 9h4V5H3v4zm5 0h4V5H8v4zm5 0h4V5h-4v4zM3 14h4v-4H3v4zm5 0h4v-4H8v4zm5 0h4v-4h-4v4z' fill='%23e9ecef' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
 }
 
-a {
-  font-weight: 600;
-  color: #0ea5e9; /* sky-500 */
-  text-decoration: none;
-}
-a:hover { color: #0284c7; }
-
-body { margin: 0; min-width: 320px; }
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #f59e0b;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
 }
 
-#app { max-width: 960px; margin: 0 auto; padding: 24px; }
-
-.logo { height: 64px; }
-
-.card { padding: 1.25rem; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; }
-
-.read-the-docs { color: #64748b; }
-
-button {
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  padding: 0.6em 1.1em;
-  font-size: 1rem;
-  font-weight: 600;
-  font-family: inherit;
-  background-color: #f1f5f9; /* slate-100 */
-  color: #0f172a;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.05s ease-in-out;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
-button:hover { background-color: #e2e8f0; }
-button:active { transform: translateY(1px); }
-button.primary { background-color: #22c55e; color: #ffffff; border-color: #16a34a; }
-button.primary:hover { background-color: #16a34a; }
 
-/* Always bright theme */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
