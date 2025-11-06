@@ -11,20 +11,20 @@ function Home() {
     
     if (showLogin) {
         return (
-            <div className="container mx-auto max-w-2xl p-4 flex items-center justify-center min-h-screen">
-                <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border-t-8 border-amber-300 w-full max-w-md text-center">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-3">질문을 활용해 읽기과정 되돌아보기</h1>
-                    <p className="text-gray-600 mb-8">AI가 만들어주는 글을 읽으며 질문을 만들고, 친구들과 함께 생각을 나눠요!</p>
-                    <div className="space-y-6">
+            <div className="container mx-auto max-w-4xl p-6 flex items-center justify-center min-h-screen">
+                <div className="bg-white p-8 md:p-12 rounded-2xl shadow-lg border-t-8 border-amber-300 w-full max-w-3xl text-center">
+                    <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 leading-tight">질문을 활용해 읽기과정 되돌아보기</h1>
+                    <p className="text-lg md:text-xl text-gray-600 mb-10 leading-relaxed">AI가 만들어주는 글을 읽으며 질문을 만들고, 친구들과 함께 생각을 나눠요!</p>
+                    <div className="space-y-8 max-w-2xl mx-auto">
                         <div>
-                            <label htmlFor="nickname-input" className="block text-left text-sm font-semibold text-gray-600 mb-1">닉네임</label>
+                            <label htmlFor="nickname-input" className="block text-left text-base font-semibold text-gray-700 mb-2">닉네임</label>
                             <input
                                 type="text"
                                 id="nickname-input"
                                 value={nickname}
                                 onChange={e => setNickname(e.target.value)}
                                 placeholder="닉네임 (예: 행복한 토끼)"
-                                className="w-full px-1 py-2 bg-transparent border-0 border-b-2 border-gray-300 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-0 focus:border-amber-500 text-lg"
+                                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-xl"
                             />
                         </div>
                         <button
@@ -32,7 +32,7 @@ function Home() {
                                 if (nickname.trim()) setShowLogin(false);
                                 else alert('닉네임을 입력해주세요!');
                             }}
-                            className="w-full px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 transition-all duration-300 text-lg"
+                            className="w-full px-8 py-4 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 transition-all duration-300 text-xl"
                         >
                             활동 시작!
                         </button>
