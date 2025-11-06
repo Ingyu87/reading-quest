@@ -2,6 +2,8 @@ import React from 'react';
 import { Link, Outlet, Route, Routes } from 'react-router-dom';
 import { AppProvider, useApp } from './state/AppContext';
 import { addQuestion, listQuestionsByArticle, likeQuestion, addAnswer, listAnswers } from './services/questions';
+import { evaluateQuestion, downloadFeedback } from './services/evaluation';
+import { getArticle } from './services/articles';
 import type { ReadingStage } from './types';
 import GenerateArticle from './components/GenerateArticle';
 
@@ -143,7 +145,20 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
     const { nickname, articleId } = useApp();
     const [text, setText] = React.useState('');
     const [saving, setSaving] = React.useState(false);
+    const [evaluating, setEvaluating] = React.useState(false);
+    const [feedback, setFeedback] = React.useState<string | null>(null);
+    const [articleData, setArticleData] = React.useState<{ title?: string; body?: string } | null>(null);
     const canSave = nickname && articleId && text && !saving;
+    
+    React.useEffect(() => {
+        if (articleId) {
+            getArticle(articleId).then(article => {
+                if (article) {
+                    setArticleData({ title: article.title, body: article.body });
+                }
+            }).catch(() => {});
+        }
+    }, [articleId]);
     
     const stageLabels = {
         pre: { num: '1️⃣', title: '읽기 전', hint: '제목과 그림을 보고 무슨 내용일지 짐작해 보세요.' },
@@ -173,24 +188,65 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
                     rows={6}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-base resize-none"
                 />
-                <button
-                    disabled={!canSave}
-                    onClick={async () => {
-                        setSaving(true);
-                        try {
-                            await addQuestion({ articleId, nickname, stage, text });
-                            setText('');
-                            alert('✅ 질문이 저장되었어요!');
-                        } catch (e: any) {
-                            alert('저장에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
-                        } finally {
-                            setSaving(false);
-                        }
-                    }}
-                    className="w-full px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 transition-all duration-300 text-lg mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {saving ? '저장 중...' : '다음 단계로'}
-                </button>
+                <div className="flex gap-3 mt-6">
+                    <button
+                        disabled={!canSave || evaluating}
+                        onClick={async () => {
+                            setSaving(true);
+                            try {
+                                await addQuestion({ articleId, nickname, stage, text });
+                                setText('');
+                                alert('✅ 질문이 저장되었어요!');
+                            } catch (e: any) {
+                                alert('저장에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
+                            } finally {
+                                setSaving(false);
+                            }
+                        }}
+                        className="flex-1 px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 transition-all duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {saving ? '저장 중...' : '저장하기'}
+                    </button>
+                    <button
+                        disabled={!text || evaluating}
+                        onClick={async () => {
+                            setEvaluating(true);
+                            setFeedback(null);
+                            try {
+                                const result = await evaluateQuestion({
+                                    question: text,
+                                    stage,
+                                    articleTitle: articleData?.title,
+                                    articleBody: articleData?.body,
+                                });
+                                setFeedback(result.feedback);
+                            } catch (e: any) {
+                                alert('평가에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
+                            } finally {
+                                setEvaluating(false);
+                            }
+                        }}
+                        className="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-all duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {evaluating ? '평가 중...' : '🤖 AI 평가'}
+                    </button>
+                </div>
+                {feedback && (
+                    <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                        <div className="flex justify-between items-start mb-4">
+                            <h4 className="text-xl font-bold text-blue-800">📝 AI 평가 피드백</h4>
+                            <button
+                                onClick={() => downloadFeedback(feedback, nickname, text, stage)}
+                                className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                            >
+                                💾 다운로드
+                            </button>
+                        </div>
+                        <div className="prose max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
+                            {feedback}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { generateArticle, generateImage } from '../services/ai';
+import { generateArticle } from '../services/ai';
 import { saveArticle } from '../services/articles';
 import { useApp } from '../state/AppContext';
 
@@ -12,7 +12,6 @@ export default function GenerateArticle() {
 	const [topic, setTopic] = React.useState('');
 	const [preview, setPreview] = React.useState<{ title: string; body: string; imageUrl: string } | null>(null);
 	const [loading, setLoading] = React.useState(false);
-	const [imgLoading, setImgLoading] = React.useState(false);
 
 	async function onGenerate() {
 		if (!nickname) {
@@ -23,7 +22,7 @@ export default function GenerateArticle() {
 		setLoading(true);
 		try {
 			const g = await generateArticle({ kind, difficulty, topic });
-			setPreview({ title: g.title, body: g.body, imageUrl: g.imageUrl });
+			setPreview({ title: g.title, body: g.body, imageUrl: `https://placehold.co/800x480?text=${encodeURIComponent(g.title)}` });
 		} catch (e: any) {
 			alert('글 생성에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
 		} finally {
@@ -31,19 +30,6 @@ export default function GenerateArticle() {
 		}
 	}
 
-	async function onGenerateImage() {
-		if (!preview) return;
-		setImgLoading(true);
-		try {
-			const prompt = `${kind} 글 삽화, 주제: ${topic || preview.title}, 초등 4학년, 밝은 색감, 친근한 스타일`;
-			const url = await generateImage(prompt, '16:9');
-			setPreview({ ...preview, imageUrl: url });
-		} catch (e: any) {
-			alert('이미지 생성에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
-		} finally {
-			setImgLoading(false);
-		}
-	}
 
 	async function onSaveAndStart() {
 		if (!preview) return;
@@ -121,16 +107,6 @@ export default function GenerateArticle() {
 
 			{preview && (
 				<div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg my-12 animate-fade-in">
-					<img src={preview.imageUrl} alt="삽화" className="w-full rounded-2xl shadow-lg mb-6" />
-					<div className="mb-4">
-						<button
-							onClick={onGenerateImage}
-							disabled={imgLoading}
-							className="px-4 py-2 bg-amber-100 text-amber-700 font-semibold rounded-lg hover:bg-amber-200 transition-colors text-sm disabled:opacity-50"
-						>
-							{imgLoading ? '삽화 생성 중...' : '🖼️ AI로 삽화 다시 만들기'}
-						</button>
-					</div>
 					<h3 className="text-2xl font-bold text-gray-800 mb-4">{preview.title}</h3>
 					<div className="prose max-w-none bg-gray-50 p-5 rounded-xl mb-6 text-lg leading-relaxed whitespace-pre-wrap">
 						{preview.body}
