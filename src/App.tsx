@@ -6,7 +6,7 @@ import type { ReadingStage } from './types';
 import GenerateArticle from './components/GenerateArticle';
 
 function Home() {
-    const { nickname, setNickname, articleId, setArticleId, authReady } = useApp();
+    const { nickname, setNickname, articleId, setArticleId } = useApp();
     const [showLogin, setShowLogin] = React.useState(!nickname);
     
     if (showLogin) {
