@@ -201,32 +201,56 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
     const canSave = nickname && articleId && text && !saving;
     
     // localStorage 키 생성
-    const getStorageKey = () => {
+    const getStorageKey = React.useCallback(() => {
         if (!articleId || !nickname) return null;
         return `question-draft-${articleId}-${stage}-${nickname}`;
-    };
-    
-    // localStorage에서 작성 중인 텍스트 복원
-    React.useEffect(() => {
-        const key = getStorageKey();
-        if (key) {
-            const saved = localStorage.getItem(key);
-            if (saved) {
-                setText(saved);
-            }
-        }
     }, [articleId, stage, nickname]);
     
-    // 텍스트 변경 시 localStorage에 저장
+    // localStorage에서 작성 중인 텍스트 복원 (저장된 질문이 아닌 경우만)
+    React.useEffect(() => {
+        if (!articleId || !nickname) return;
+        
+        // 먼저 저장된 질문 목록을 확인
+        listQuestionsByArticle(articleId).then(qs => {
+            const saved = qs.filter(q => q.stage === stage && q.nickname === nickname);
+            // 저장된 질문이 없을 때만 localStorage에서 복원
+            if (saved.length === 0) {
+                const key = getStorageKey();
+                if (key) {
+                    const draft = localStorage.getItem(key);
+                    if (draft) {
+                        setText(draft);
+                    }
+                }
+            }
+        }).catch(() => {
+            // 에러 발생 시에도 localStorage에서 복원 시도
+            const key = getStorageKey();
+            if (key) {
+                const draft = localStorage.getItem(key);
+                if (draft) {
+                    setText(draft);
+                }
+            }
+        });
+    }, [articleId, stage, nickname, getStorageKey]);
+    
+    // 텍스트 변경 시 localStorage에 자동 저장 (debounce 적용)
     React.useEffect(() => {
         const key = getStorageKey();
-        if (key && text) {
-            localStorage.setItem(key, text);
-        } else if (key && !text) {
-            // 텍스트가 비어있으면 localStorage에서 삭제
-            localStorage.removeItem(key);
-        }
-    }, [text, articleId, stage, nickname]);
+        if (!key) return;
+        
+        // 짧은 지연 후 저장 (너무 자주 저장하지 않도록)
+        const timer = setTimeout(() => {
+            if (text.trim()) {
+                localStorage.setItem(key, text);
+            } else {
+                localStorage.removeItem(key);
+            }
+        }, 500);
+        
+        return () => clearTimeout(timer);
+    }, [text, getStorageKey]);
     
     React.useEffect(() => {
         if (articleId) {
@@ -353,9 +377,8 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
                             setSaving(true);
                             try {
                                 await addQuestion({ articleId, nickname, stage, text });
-                                const savedText = text; // 저장 전 텍스트 보관
+                                // 저장 성공 후 입력창 비우기 및 localStorage 삭제
                                 setText('');
-                                // localStorage에서도 삭제
                                 const key = getStorageKey();
                                 if (key) {
                                     localStorage.removeItem(key);
@@ -363,7 +386,6 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
                                 // 저장된 질문 목록 새로고침
                                 const qs = await listQuestionsByArticle(articleId);
                                 setSavedQuestions(qs.filter(q => q.stage === stage && q.nickname === nickname));
-                                // 저장 성공 메시지 (alert 대신 화면에 표시)
                             } catch (e: any) {
                                 alert('저장에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
                             } finally {
@@ -529,10 +551,10 @@ function AnswerBox({ questionId, onSubmitted, nickname }: { questionId: string; 
     const can = text && nickname;
     
     // localStorage 키 생성
-    const getStorageKey = () => {
+    const getStorageKey = React.useCallback(() => {
         if (!questionId || !nickname) return null;
         return `answer-draft-${questionId}-${nickname}`;
-    };
+    }, [questionId, nickname]);
     
     // localStorage에서 작성 중인 답변 복원
     React.useEffect(() => {
@@ -543,17 +565,23 @@ function AnswerBox({ questionId, onSubmitted, nickname }: { questionId: string; 
                 setText(saved);
             }
         }
-    }, [questionId, nickname]);
+    }, [questionId, nickname, getStorageKey]);
     
-    // 텍스트 변경 시 localStorage에 저장
+    // 텍스트 변경 시 localStorage에 자동 저장 (debounce 적용)
     React.useEffect(() => {
         const key = getStorageKey();
-        if (key && text) {
-            localStorage.setItem(key, text);
-        } else if (key && !text) {
-            localStorage.removeItem(key);
-        }
-    }, [text, questionId, nickname]);
+        if (!key) return;
+        
+        const timer = setTimeout(() => {
+            if (text.trim()) {
+                localStorage.setItem(key, text);
+            } else {
+                localStorage.removeItem(key);
+            }
+        }, 500);
+        
+        return () => clearTimeout(timer);
+    }, [text, getStorageKey]);
     
     return (
         <div className="mt-4">
