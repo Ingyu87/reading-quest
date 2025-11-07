@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Outlet, Route, Routes } from 'react-router-dom';
+import { Link, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import { AppProvider, useApp } from './state/AppContext';
 import { addQuestion, listQuestionsByArticle, likeQuestion, addAnswer, listAnswers } from './services/questions';
 import { evaluateQuestion, downloadFeedback } from './services/evaluation';
@@ -10,6 +10,9 @@ import GenerateArticle from './components/GenerateArticle';
 function Home() {
     const { nickname, setNickname, articleId, setArticleId } = useApp();
     const [showLogin, setShowLogin] = React.useState(!nickname);
+    const [articlePreview, setArticlePreview] = React.useState<{ title: string; body: string; imageUrl: string } | null>(null);
+    const [loadingPreview, setLoadingPreview] = React.useState(false);
+    const nav = useNavigate();
     
     if (showLogin) {
         return (
@@ -59,19 +62,64 @@ function Home() {
                                 type="text"
                                 id="article-code"
                                 value={articleId}
-                                onChange={e => setArticleId(e.target.value)}
+                                onChange={e => {
+                                    setArticleId(e.target.value);
+                                    setArticlePreview(null);
+                                }}
                                 placeholder="선생님이 알려준 코드 (비워두면 새 글)"
                                 className="flex-1 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-base"
                             />
                             <button
-                                onClick={() => setArticleId(Math.random().toString(36).slice(2, 8).toUpperCase())}
+                                onClick={() => {
+                                    const newCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+                                    setArticleId(newCode);
+                                    setArticlePreview(null);
+                                }}
                                 className="px-4 py-2 bg-amber-100 text-amber-700 font-semibold rounded-lg hover:bg-amber-200 transition-colors text-sm"
                             >
                                 코드 만들기
                             </button>
+                            {articleId && (
+                                <button
+                                    onClick={async () => {
+                                        setLoadingPreview(true);
+                                        try {
+                                            const article = await getArticle(articleId);
+                                            if (article) {
+                                                setArticlePreview({ title: article.title, body: article.body, imageUrl: article.imageUrl });
+                                            } else {
+                                                alert('이 코드로 저장된 글이 없어요. 새 글을 만들어주세요.');
+                                            }
+                                        } catch (e: any) {
+                                            alert('글을 불러오는데 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
+                                        } finally {
+                                            setLoadingPreview(false);
+                                        }
+                                    }}
+                                    disabled={loadingPreview}
+                                    className="px-4 py-2 bg-blue-100 text-blue-700 font-semibold rounded-lg hover:bg-blue-200 transition-colors text-sm disabled:opacity-50"
+                                >
+                                    {loadingPreview ? '불러오는 중...' : '글 미리보기'}
+                                </button>
+                            )}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">같은 활동에 참여하려면 모두 같은 코드를 써요.</p>
                     </div>
+                    {articlePreview && (
+                        <div className="bg-white p-4 rounded-xl border-2 border-amber-300 mt-4">
+                            <h3 className="text-lg font-bold text-gray-800 mb-2">{articlePreview.title}</h3>
+                            {articlePreview.imageUrl && (
+                                <img src={articlePreview.imageUrl} alt={articlePreview.title} className="w-full rounded-lg mb-2" />
+                            )}
+                            <p className="text-sm text-gray-600 line-clamp-3">{articlePreview.body.substring(0, 100)}...</p>
+                            <button
+                                onClick={() => nav('/flow/pre')}
+                                className="mt-3 w-full px-4 py-2 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors"
+                            >
+                                이 글 읽기 시작하기
+                            </button>
+                        </div>
+                    )}
                     <div className="relative">
                         <div className="absolute inset-0 flex items-center" aria-hidden="true">
                             <div className="w-full border-t border-gray-300"></div>
@@ -147,28 +195,126 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
     const [saving, setSaving] = React.useState(false);
     const [evaluating, setEvaluating] = React.useState(false);
     const [feedback, setFeedback] = React.useState<string | null>(null);
-    const [articleData, setArticleData] = React.useState<{ title?: string; body?: string } | null>(null);
+    const [articleData, setArticleData] = React.useState<{ title?: string; body?: string; imageUrl?: string } | null>(null);
+    const [savedQuestions, setSavedQuestions] = React.useState<any[]>([]);
+    const [loadingArticle, setLoadingArticle] = React.useState(true);
     const canSave = nickname && articleId && text && !saving;
     
     React.useEffect(() => {
         if (articleId) {
+            setLoadingArticle(true);
             getArticle(articleId).then(article => {
                 if (article) {
-                    setArticleData({ title: article.title, body: article.body });
+                    setArticleData({ title: article.title, body: article.body, imageUrl: article.imageUrl });
+                } else {
+                    setArticleData(null);
                 }
+            }).catch(() => {
+                setArticleData(null);
+            }).finally(() => {
+                setLoadingArticle(false);
+            });
+            // 저장된 질문 목록 불러오기
+            listQuestionsByArticle(articleId).then(qs => {
+                setSavedQuestions(qs.filter(q => q.stage === stage && q.nickname === nickname));
             }).catch(() => {});
+        } else {
+            setLoadingArticle(false);
+            setArticleData(null);
         }
-    }, [articleId]);
+    }, [articleId, stage, nickname]);
     
     const stageLabels = {
-        pre: { num: '1️⃣', title: '읽기 전', hint: '제목과 그림을 보고 무슨 내용일지 짐작해 보세요.' },
-        during: { num: '2️⃣', title: '읽기 중', hint: '글의 중심 내용을 찾으며 읽어보세요.' },
-        post: { num: '3️⃣', title: '읽기 후', hint: '글 전체의 내용을 정리해 보세요.' },
+        pre: { num: '1️⃣', title: '읽기 전', hint: '제목과 그림을 보고 무슨 내용일지 짐작해 보세요.', instruction: '제목과 그림을 보고 궁금한 점을 질문으로 작성해주세요.' },
+        during: { num: '2️⃣', title: '읽기 중', hint: '글의 중심 내용을 찾으며 읽어보세요.', instruction: '글을 읽으며 중심 내용이나 새롭게 알게 된 점에 대해 질문을 작성해주세요.' },
+        post: { num: '3️⃣', title: '읽기 후', hint: '글 전체의 내용을 정리해 보세요.', instruction: '글을 다 읽고 전체 내용을 정리하는 질문을 작성해주세요.' },
     };
     const label = stageLabels[stage];
     
+    // articleId가 없거나 글을 불러오지 못한 경우
+    if (!articleId) {
+        return (
+            <div className="container mx-auto max-w-2xl p-4">
+                <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg my-12 border-2 border-amber-300">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">⚠️ 활동 코드가 필요해요</h2>
+                    <p className="text-gray-700 mb-4">글을 읽으려면 먼저 활동 코드를 입력하거나 새 글을 만들어야 해요.</p>
+                    <Link to="/" className="inline-block px-6 py-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">
+                        홈으로 가기
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+    
+    if (loadingArticle) {
+        return (
+            <div className="container mx-auto max-w-2xl p-4 flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="spinner mx-auto"></div>
+                    <p className="text-lg font-semibold text-amber-700 mt-4">글을 불러오는 중...</p>
+                </div>
+            </div>
+        );
+    }
+    
     return (
         <div className="container mx-auto max-w-2xl p-4">
+            {/* 읽기 전: 제목과 그림 표시 (항상 표시) */}
+            {stage === 'pre' && (
+                <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg my-12">
+                    {articleData ? (
+                        <>
+                            <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">{articleData.title || '제목 미생성'}</h2>
+                            {articleData.imageUrl && (
+                                <img 
+                                    src={articleData.imageUrl} 
+                                    alt={articleData.title || '글 삽화'} 
+                                    className="w-full rounded-xl shadow-lg mb-6"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = `https://placehold.co/800x480/e2e8f0/94a3b8?text=${encodeURIComponent(articleData.title || '이미지')}`;
+                                    }}
+                                />
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-center py-8">
+                            <p className="text-gray-500 text-lg mb-4">⚠️ 이 활동 코드로 저장된 글이 없어요.</p>
+                            <p className="text-gray-600 mb-4">홈에서 'AI로 새 글 만들기'를 눌러 글을 먼저 만들어주세요.</p>
+                            <Link to="/start" className="inline-block px-6 py-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">
+                                새 글 만들기
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            )}
+            
+            {/* 읽기 중/후: 본문 표시 (항상 표시) */}
+            {(stage === 'during' || stage === 'post') && (
+                <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg my-12">
+                    {articleData ? (
+                        <>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-4">{articleData.title || '제목 미생성'}</h2>
+                            {articleData.body ? (
+                                <div className="prose max-w-none bg-gray-50 p-5 rounded-xl text-lg leading-relaxed whitespace-pre-wrap">
+                                    {articleData.body}
+                                </div>
+                            ) : (
+                                <p className="text-gray-500">본문이 없습니다.</p>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-center py-8">
+                            <p className="text-gray-500 text-lg mb-4">⚠️ 이 활동 코드로 저장된 글이 없어요.</p>
+                            <p className="text-gray-600 mb-4">홈에서 'AI로 새 글 만들기'를 눌러 글을 먼저 만들어주세요.</p>
+                            <Link to="/start" className="inline-block px-6 py-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">
+                                새 글 만들기
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            )}
+            
+            {/* 질문 작성 폼 */}
             <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg my-12">
                 <div className="flex justify-between items-center mb-4">
                     <span className="inline-block bg-amber-100 text-amber-700 text-base font-semibold px-4 py-1 rounded-full">
@@ -178,9 +324,10 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
                         질문 힌트 💡
                     </button>
                 </div>
-                <label className="block text-lg font-semibold text-gray-800 mb-2">
-                    {label.hint}
-                </label>
+                <div className="mb-4">
+                    <p className="text-lg font-semibold text-gray-800 mb-2">{label.hint}</p>
+                    <p className="text-base text-gray-600 mb-3">💬 {label.instruction}</p>
+                </div>
                 <textarea
                     value={text}
                     onChange={e => setText(e.target.value)}
@@ -192,11 +339,19 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
                     <button
                         disabled={!canSave || evaluating}
                         onClick={async () => {
+                            if (!text.trim()) {
+                                alert('질문을 입력해주세요!');
+                                return;
+                            }
                             setSaving(true);
                             try {
                                 await addQuestion({ articleId, nickname, stage, text });
+                                const savedText = text; // 저장 전 텍스트 보관
                                 setText('');
-                                alert('✅ 질문이 저장되었어요!');
+                                // 저장된 질문 목록 새로고침
+                                const qs = await listQuestionsByArticle(articleId);
+                                setSavedQuestions(qs.filter(q => q.stage === stage && q.nickname === nickname));
+                                // 저장 성공 메시지 (alert 대신 화면에 표시)
                             } catch (e: any) {
                                 alert('저장에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
                             } finally {
@@ -247,6 +402,28 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
                         </div>
                     </div>
                 )}
+                
+                {/* 저장된 질문 목록 (항상 표시) */}
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                    <h4 className="text-lg font-bold text-gray-800 mb-4">
+                        내가 작성한 질문 
+                        {savedQuestions.length > 0 && <span className="text-amber-600">({savedQuestions.length}개)</span>}
+                    </h4>
+                    {savedQuestions.length > 0 ? (
+                        <div className="space-y-3">
+                            {savedQuestions.map(q => (
+                                <div key={q.id} className="bg-amber-50 p-4 rounded-lg border-l-4 border-amber-500">
+                                    <p className="text-gray-700 text-base">{q.text}</p>
+                                    <p className="text-xs text-gray-500 mt-2">
+                                        {new Date(q.createdAt).toLocaleString('ko-KR')}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-gray-500 text-sm">아직 저장된 질문이 없어요. 위에서 질문을 작성하고 저장해보세요!</p>
+                    )}
+                </div>
             </div>
         </div>
     );
