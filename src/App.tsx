@@ -259,60 +259,39 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
     
     return (
         <div className="container mx-auto max-w-2xl p-4">
-            {/* 읽기 전: 제목과 그림 표시 (항상 표시) */}
-            {stage === 'pre' && (
-                <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg my-12">
-                    {articleData ? (
-                        <>
-                            <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">{articleData.title || '제목 미생성'}</h2>
-                            {articleData.imageUrl && (
-                                <img 
-                                    src={articleData.imageUrl} 
-                                    alt={articleData.title || '글 삽화'} 
-                                    className="w-full rounded-xl shadow-lg mb-6"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = `https://placehold.co/800x480/e2e8f0/94a3b8?text=${encodeURIComponent(articleData.title || '이미지')}`;
-                                    }}
-                                />
-                            )}
-                        </>
-                    ) : (
-                        <div className="text-center py-8">
-                            <p className="text-gray-500 text-lg mb-4">⚠️ 이 활동 코드로 저장된 글이 없어요.</p>
-                            <p className="text-gray-600 mb-4">홈에서 'AI로 새 글 만들기'를 눌러 글을 먼저 만들어주세요.</p>
-                            <Link to="/start" className="inline-block px-6 py-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">
-                                새 글 만들기
-                            </Link>
-                        </div>
-                    )}
-                </div>
-            )}
-            
-            {/* 읽기 중/후: 본문 표시 (항상 표시) */}
-            {(stage === 'during' || stage === 'post') && (
-                <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg my-12">
-                    {articleData ? (
-                        <>
-                            <h2 className="text-2xl font-bold text-gray-800 mb-4">{articleData.title || '제목 미생성'}</h2>
-                            {articleData.body ? (
-                                <div className="prose max-w-none bg-gray-50 p-5 rounded-xl text-lg leading-relaxed whitespace-pre-wrap">
-                                    {articleData.body}
-                                </div>
-                            ) : (
-                                <p className="text-gray-500">본문이 없습니다.</p>
-                            )}
-                        </>
-                    ) : (
-                        <div className="text-center py-8">
-                            <p className="text-gray-500 text-lg mb-4">⚠️ 이 활동 코드로 저장된 글이 없어요.</p>
-                            <p className="text-gray-600 mb-4">홈에서 'AI로 새 글 만들기'를 눌러 글을 먼저 만들어주세요.</p>
-                            <Link to="/start" className="inline-block px-6 py-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">
-                                새 글 만들기
-                            </Link>
-                        </div>
-                    )}
-                </div>
-            )}
+            {/* 모든 단계에서 제목, 삽화, 본문 항상 표시 */}
+            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg my-12 sticky top-4 z-10">
+                {articleData ? (
+                    <>
+                        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">{articleData.title || '제목 미생성'}</h2>
+                        {articleData.imageUrl && (
+                            <img 
+                                src={articleData.imageUrl} 
+                                alt={articleData.title || '글 삽화'} 
+                                className="w-full rounded-xl shadow-lg mb-6"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = `https://placehold.co/800x480/e2e8f0/94a3b8?text=${encodeURIComponent(articleData.title || '이미지')}`;
+                                }}
+                            />
+                        )}
+                        {articleData.body ? (
+                            <div className="prose max-w-none bg-gray-50 p-5 rounded-xl text-lg leading-relaxed whitespace-pre-wrap">
+                                {articleData.body}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500">본문이 없습니다.</p>
+                        )}
+                    </>
+                ) : (
+                    <div className="text-center py-8">
+                        <p className="text-gray-500 text-lg mb-4">⚠️ 이 활동 코드로 저장된 글이 없어요.</p>
+                        <p className="text-gray-600 mb-4">홈에서 'AI로 새 글 만들기'를 눌러 글을 먼저 만들어주세요.</p>
+                        <Link to="/start" className="inline-block px-6 py-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">
+                            새 글 만들기
+                        </Link>
+                    </div>
+                )}
+            </div>
             
             {/* 질문 작성 폼 */}
             <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg my-12">
