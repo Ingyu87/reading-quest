@@ -310,153 +310,159 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
     }
     
     return (
-        <div className="container mx-auto max-w-2xl p-4">
-            {/* 모든 단계에서 제목, 삽화, 본문 항상 표시 */}
-            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg my-12 sticky top-4 z-10">
-                {articleData ? (
-                    <>
-                        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">{articleData.title || '제목 미생성'}</h2>
-                        {articleData.imageUrl && (
-                            <img 
-                                src={articleData.imageUrl} 
-                                alt={articleData.title || '글 삽화'} 
-                                className="w-full rounded-xl shadow-lg mb-6"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).src = `https://placehold.co/800x480/e2e8f0/94a3b8?text=${encodeURIComponent(articleData.title || '이미지')}`;
-                                }}
-                            />
-                        )}
-                        {articleData.body ? (
-                            <div className="prose max-w-none bg-gray-50 p-5 rounded-xl text-lg leading-relaxed whitespace-pre-wrap">
-                                {articleData.body}
-                            </div>
+        <div className="container mx-auto max-w-7xl p-4">
+            <div className="flex flex-col lg:flex-row gap-6 my-12">
+                {/* 왼쪽: 지문 영역 */}
+                <div className="flex-1 lg:max-w-2xl">
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg sticky top-4 z-10">
+                        {articleData ? (
+                            <>
+                                <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">{articleData.title || '제목 미생성'}</h2>
+                                {articleData.imageUrl && (
+                                    <img 
+                                        src={articleData.imageUrl} 
+                                        alt={articleData.title || '글 삽화'} 
+                                        className="w-full rounded-xl shadow-lg mb-6"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = `https://placehold.co/800x480/e2e8f0/94a3b8?text=${encodeURIComponent(articleData.title || '이미지')}`;
+                                        }}
+                                    />
+                                )}
+                                {articleData.body ? (
+                                    <div className="prose max-w-none bg-gray-50 p-5 rounded-xl text-lg leading-relaxed whitespace-pre-wrap">
+                                        {articleData.body}
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500">본문이 없습니다.</p>
+                                )}
+                            </>
                         ) : (
-                            <p className="text-gray-500">본문이 없습니다.</p>
+                            <div className="text-center py-8">
+                                <p className="text-gray-500 text-lg mb-4">⚠️ 이 활동 코드로 저장된 글이 없어요.</p>
+                                <p className="text-gray-600 mb-4">홈에서 'AI로 새 글 만들기'를 눌러 글을 먼저 만들어주세요.</p>
+                                <Link to="/start" className="inline-block px-6 py-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">
+                                    새 글 만들기
+                                </Link>
+                            </div>
                         )}
-                    </>
-                ) : (
-                    <div className="text-center py-8">
-                        <p className="text-gray-500 text-lg mb-4">⚠️ 이 활동 코드로 저장된 글이 없어요.</p>
-                        <p className="text-gray-600 mb-4">홈에서 'AI로 새 글 만들기'를 눌러 글을 먼저 만들어주세요.</p>
-                        <Link to="/start" className="inline-block px-6 py-3 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 transition-colors">
-                            새 글 만들기
-                        </Link>
                     </div>
-                )}
-            </div>
-            
-            {/* 질문 작성 폼 */}
-            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg my-12">
-                <div className="flex justify-between items-center mb-4">
-                    <span className="inline-block bg-amber-100 text-amber-700 text-base font-semibold px-4 py-1 rounded-full">
-                        {label.num} {label.title}
-                    </span>
-                    <button className="px-4 py-2 bg-amber-100 text-amber-700 font-semibold rounded-lg hover:bg-amber-200 transition-colors text-sm">
-                        질문 힌트 💡
-                    </button>
                 </div>
-                <div className="mb-4">
-                    <p className="text-lg font-semibold text-gray-800 mb-2">{label.hint}</p>
-                    <p className="text-base text-gray-600 mb-3">💬 {label.instruction}</p>
-                </div>
-                <textarea
-                    value={text}
-                    onChange={e => setText(e.target.value)}
-                    placeholder="예) 이 글은 어떤 내용을 다루고 있을까?"
-                    rows={6}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-base resize-none"
-                />
-                <div className="flex gap-3 mt-6">
-                    <button
-                        disabled={!canSave || evaluating}
-                        onClick={async () => {
+                
+                {/* 오른쪽: 활동 영역 */}
+                <div className="flex-1 lg:max-w-md">
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg sticky top-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="inline-block bg-amber-100 text-amber-700 text-base font-semibold px-4 py-1 rounded-full">
+                                {label.num} {label.title}
+                            </span>
+                            <button className="px-4 py-2 bg-amber-100 text-amber-700 font-semibold rounded-lg hover:bg-amber-200 transition-colors text-sm">
+                                질문 힌트 💡
+                            </button>
+                        </div>
+                        <div className="mb-4">
+                            <p className="text-lg font-semibold text-gray-800 mb-2">{label.hint}</p>
+                            <p className="text-base text-gray-600 mb-3">💬 {label.instruction}</p>
+                        </div>
+                        <textarea
+                            value={text}
+                            onChange={e => setText(e.target.value)}
+                            placeholder="예) 이 글은 어떤 내용을 다루고 있을까?"
+                            rows={6}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-base resize-none"
+                        />
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                disabled={!canSave || evaluating}
+                                onClick={async () => {
                             if (!text.trim()) {
                                 alert('질문을 입력해주세요!');
                                 return;
                             }
-                            setSaving(true);
-                            try {
-                                await addQuestion({ articleId, nickname, stage, text });
-                                // 저장 성공 후 입력창 비우기 및 localStorage 삭제
-                                setText('');
-                                const key = getStorageKey();
-                                if (key) {
-                                    localStorage.removeItem(key);
-                                }
-                                // 저장된 질문 목록 새로고침
-                                const qs = await listQuestionsByArticle(articleId);
-                                setSavedQuestions(qs.filter(q => q.stage === stage && q.nickname === nickname));
-                            } catch (e: any) {
-                                alert('저장에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
-                            } finally {
-                                setSaving(false);
-                            }
-                        }}
-                        className="flex-1 px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 transition-all duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {saving ? '저장 중...' : '저장하기'}
-                    </button>
-                    <button
-                        disabled={!text || evaluating}
-                        onClick={async () => {
-                            setEvaluating(true);
-                            setFeedback(null);
-                            try {
-                                const result = await evaluateQuestion({
-                                    question: text,
-                                    stage,
-                                    articleTitle: articleData?.title,
-                                    articleBody: articleData?.body,
-                                });
-                                setFeedback(result.feedback);
-                            } catch (e: any) {
-                                alert('평가에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
-                            } finally {
-                                setEvaluating(false);
-                            }
-                        }}
-                        className="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-all duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {evaluating ? '평가 중...' : '🤖 AI 평가'}
-                    </button>
-                </div>
-                {feedback && (
-                    <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
-                        <div className="flex justify-between items-start mb-4">
-                            <h4 className="text-xl font-bold text-blue-800">📝 AI 평가 피드백</h4>
-                            <button
-                                onClick={() => downloadFeedback(feedback, nickname, text, stage)}
-                                className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                                    setSaving(true);
+                                    try {
+                                        await addQuestion({ articleId, nickname, stage, text });
+                                        // 저장 성공 후 입력창 비우기 및 localStorage 삭제
+                                        setText('');
+                                        const key = getStorageKey();
+                                        if (key) {
+                                            localStorage.removeItem(key);
+                                        }
+                                        // 저장된 질문 목록 새로고침
+                                        const qs = await listQuestionsByArticle(articleId);
+                                        setSavedQuestions(qs.filter(q => q.stage === stage && q.nickname === nickname));
+                                    } catch (e: any) {
+                                        alert('저장에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
+                                    } finally {
+                                        setSaving(false);
+                                    }
+                                }}
+                                className="flex-1 px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 transition-all duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                💾 다운로드
+                                {saving ? '저장 중...' : '저장하기'}
+                            </button>
+                            <button
+                                disabled={!text || evaluating}
+                                onClick={async () => {
+                                    setEvaluating(true);
+                                    setFeedback(null);
+                                    try {
+                                        const result = await evaluateQuestion({
+                                            question: text,
+                                            stage,
+                                            articleTitle: articleData?.title,
+                                            articleBody: articleData?.body,
+                                        });
+                                        setFeedback(result.feedback);
+                                    } catch (e: any) {
+                                        alert('평가에 실패했습니다: ' + (e?.message || '알 수 없는 오류'));
+                                    } finally {
+                                        setEvaluating(false);
+                                    }
+                                }}
+                                className="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-all duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {evaluating ? '평가 중...' : '🤖 AI 평가'}
                             </button>
                         </div>
-                        <div className="prose max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
-                            {feedback}
+                        {feedback && (
+                            <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <h4 className="text-xl font-bold text-blue-800">📝 AI 평가 피드백</h4>
+                                    <button
+                                        onClick={() => downloadFeedback(feedback, nickname, text, stage)}
+                                        className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                                    >
+                                        💾 다운로드
+                                    </button>
+                                </div>
+                                <div className="prose max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                    {feedback}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* 저장된 질문 목록 (항상 표시) */}
+                        <div className="mt-8 pt-6 border-t border-gray-200">
+                            <h4 className="text-lg font-bold text-gray-800 mb-4">
+                                내가 작성한 질문 
+                                {savedQuestions.length > 0 && <span className="text-amber-600">({savedQuestions.length}개)</span>}
+                            </h4>
+                            {savedQuestions.length > 0 ? (
+                                <div className="space-y-3">
+                                    {savedQuestions.map(q => (
+                                        <div key={q.id} className="bg-amber-50 p-4 rounded-lg border-l-4 border-amber-500">
+                                            <p className="text-gray-700 text-base">{q.text}</p>
+                                            <p className="text-xs text-gray-500 mt-2">
+                                                {new Date(q.createdAt).toLocaleString('ko-KR')}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-gray-500 text-sm">아직 저장된 질문이 없어요. 위에서 질문을 작성하고 저장해보세요!</p>
+                            )}
                         </div>
                     </div>
-                )}
-                
-                {/* 저장된 질문 목록 (항상 표시) */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                    <h4 className="text-lg font-bold text-gray-800 mb-4">
-                        내가 작성한 질문 
-                        {savedQuestions.length > 0 && <span className="text-amber-600">({savedQuestions.length}개)</span>}
-                    </h4>
-                    {savedQuestions.length > 0 ? (
-                        <div className="space-y-3">
-                            {savedQuestions.map(q => (
-                                <div key={q.id} className="bg-amber-50 p-4 rounded-lg border-l-4 border-amber-500">
-                                    <p className="text-gray-700 text-base">{q.text}</p>
-                                    <p className="text-xs text-gray-500 mt-2">
-                                        {new Date(q.createdAt).toLocaleString('ko-KR')}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-gray-500 text-sm">아직 저장된 질문이 없어요. 위에서 질문을 작성하고 저장해보세요!</p>
-                    )}
                 </div>
             </div>
         </div>
