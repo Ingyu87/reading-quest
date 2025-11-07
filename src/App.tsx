@@ -200,6 +200,34 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
     const [loadingArticle, setLoadingArticle] = React.useState(true);
     const canSave = nickname && articleId && text && !saving;
     
+    // localStorage 키 생성
+    const getStorageKey = () => {
+        if (!articleId || !nickname) return null;
+        return `question-draft-${articleId}-${stage}-${nickname}`;
+    };
+    
+    // localStorage에서 작성 중인 텍스트 복원
+    React.useEffect(() => {
+        const key = getStorageKey();
+        if (key) {
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                setText(saved);
+            }
+        }
+    }, [articleId, stage, nickname]);
+    
+    // 텍스트 변경 시 localStorage에 저장
+    React.useEffect(() => {
+        const key = getStorageKey();
+        if (key && text) {
+            localStorage.setItem(key, text);
+        } else if (key && !text) {
+            // 텍스트가 비어있으면 localStorage에서 삭제
+            localStorage.removeItem(key);
+        }
+    }, [text, articleId, stage, nickname]);
+    
     React.useEffect(() => {
         if (articleId) {
             setLoadingArticle(true);
@@ -327,6 +355,11 @@ function QuestionForm({ stage }: { stage: ReadingStage }) {
                                 await addQuestion({ articleId, nickname, stage, text });
                                 const savedText = text; // 저장 전 텍스트 보관
                                 setText('');
+                                // localStorage에서도 삭제
+                                const key = getStorageKey();
+                                if (key) {
+                                    localStorage.removeItem(key);
+                                }
                                 // 저장된 질문 목록 새로고침
                                 const qs = await listQuestionsByArticle(articleId);
                                 setSavedQuestions(qs.filter(q => q.stage === stage && q.nickname === nickname));
@@ -494,6 +527,34 @@ function Gallery() {
 function AnswerBox({ questionId, onSubmitted, nickname }: { questionId: string; onSubmitted: () => void; nickname: string; }) {
     const [text, setText] = React.useState('');
     const can = text && nickname;
+    
+    // localStorage 키 생성
+    const getStorageKey = () => {
+        if (!questionId || !nickname) return null;
+        return `answer-draft-${questionId}-${nickname}`;
+    };
+    
+    // localStorage에서 작성 중인 답변 복원
+    React.useEffect(() => {
+        const key = getStorageKey();
+        if (key) {
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                setText(saved);
+            }
+        }
+    }, [questionId, nickname]);
+    
+    // 텍스트 변경 시 localStorage에 저장
+    React.useEffect(() => {
+        const key = getStorageKey();
+        if (key && text) {
+            localStorage.setItem(key, text);
+        } else if (key && !text) {
+            localStorage.removeItem(key);
+        }
+    }, [text, questionId, nickname]);
+    
     return (
         <div className="mt-4">
             <label className="text-sm font-semibold text-gray-600 mb-1 block">이 질문에 대한 답변 달기...</label>
@@ -510,6 +571,10 @@ function AnswerBox({ questionId, onSubmitted, nickname }: { questionId: string; 
                     onClick={async () => {
                         if (text.trim() && nickname) {
                             await addAnswer({ questionId, nickname, text });
+                            const key = getStorageKey();
+                            if (key) {
+                                localStorage.removeItem(key);
+                            }
                             setText('');
                             onSubmitted();
                         }
